@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>【極秘任務】制約ルーレット - 東北地方・次の一手</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            background-color: #f4f7f6;
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 20px 20px;
+            overflow-x: hidden;
+        }
+        
+        /* Modal animation styles */
+        .modal-enter {
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.5) translateY(-50px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        /* Pointer animation */
+        .pointer {
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+            z-index: 10;
+        }
+
+        /* Button hover effect */
+        .spin-btn {
+            transition: all 0.1s ease;
+            box-shadow: 0 8px 0 #c53030, 0 15px 20px rgba(0,0,0,0.3);
+        }
+        .spin-btn:active {
+            transform: translateY(8px);
+            box-shadow: 0 0 0 #c53030, 0 5px 10px rgba(0,0,0,0.3);
+        }
+
+        /* Confetti effect inside modal */
+        .confetti-bg {
+            background-image: url('data:image/svg+xml;utf8,<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="5" fill="%23FFD700" opacity="0.6"/><rect x="70" y="30" width="8" height="8" fill="%23FF6B6B" opacity="0.6" transform="rotate(45 74 34)"/><polygon points="30,80 35,70 40,80" fill="%234ECDC4" opacity="0.6"/></svg>');
+            background-size: 150px 150px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center py-10 relative">
+
+    <div class="text-center mb-6 px-4">
+        <h1 class="text-3xl md:text-5xl font-black text-slate-800 mb-2 tracking-tight">
+            <span class="text-red-500">極秘任務</span> 制約ルーレット
+        </h1>
+        <p class="text-slate-600 font-bold text-lg md:text-xl">東北地方・次の一手 プロジェクト</p>
+    </div>
+
+    <!-- Container for Canvas and Pointer -->
+    <div class="relative w-[320px] h-[320px] md:w-[450px] md:h-[450px] mb-8">
+        <!-- Pointer (Arrow) -->
+        <div class="pointer absolute top-[-20px] left-1/2 transform -translate-x-1/2 w-0 h-0 
+                    border-l-[20px] border-l-transparent 
+                    border-r-[20px] border-r-transparent 
+                    border-t-[40px] border-t-red-600">
+        </div>
+        
+        <!-- Roulette Canvas -->
+        <canvas id="rouletteCanvas" width="450" height="450" class="w-full h-full rounded-full shadow-2xl border-8 border-slate-800"></canvas>
+    </div>
+
+    <button id="spinBtn" class="spin-btn bg-red-500 hover:bg-red-400 text-white font-black text-3xl md:text-4xl py-4 px-12 rounded-full border-4 border-red-700 outline-none">
+        SPIN !
+    </button>
+    <p class="mt-4 text-slate-500 text-sm font-bold animate-pulse">※タップして運命の制約を決めよう！</p>
+
+    <!-- Result Modal (Hidden by default) -->
+    <div id="resultModal" class="fixed inset-0 bg-slate-900 bg-opacity-80 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white w-full max-w-2xl rounded-3xl p-8 relative shadow-2xl confetti-bg border-8 border-slate-800">
+            <h2 class="text-red-600 font-black text-2xl md:text-3xl mb-2 text-center">MISSION IMPOSED</h2>
+            <div class="bg-slate-800 text-white p-2 rounded-lg text-center mb-6">
+                <span class="text-lg font-bold">決定した制約カード</span>
+            </div>
+            
+            <h3 id="resultTitle" class="text-3xl md:text-4xl font-black text-center text-slate-800 mb-6 leading-tight">
+                <!-- Result Title Goes Here -->
+            </h3>
+            
+            <div class="bg-slate-100 p-6 rounded-xl border-2 border-slate-200">
+                <p id="resultDesc" class="text-lg md:text-xl font-bold text-slate-700 leading-relaxed">
+                    <!-- Result Description Goes Here -->
+                </p>
+            </div>
+            
+            <div class="mt-8 text-center">
+                <button id="closeModalBtn" class="bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 px-8 rounded-full text-xl shadow-lg transform transition hover:scale-105">
+                    この制約で挑戦する！
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data for the 7 constraint cards
+        const constraints = [
+            { 
+                label: "予算10万円", 
+                title: "予算はたったの「10万円」", 
+                desc: "ハコモノ（建物の建設など）に逃げるのは禁止！SNS、既存のコミュニティ、君たちの知恵など「ソフト面」だけで解決しよう。",
+                color: "#FF6B6B"
+            },
+            { 
+                label: "海外ノマド限定", 
+                title: "対象者は「海外デジタルノマド」限定", 
+                desc: "国内の市場だけを見るのはストップ。外部の新しい視点から、東北の自然や文化の価値を再定義しよう！",
+                color: "#4ECDC4"
+            },
+            { 
+                label: "雪 × 伝統工芸", 
+                title: "「雪」と「伝統工芸」を組み合わせる", 
+                desc: "一見関係ないもの、あるいは弱点と思われがちな「雪」を、「伝統」と強制的に結びつけて新価値を生み出そう。",
+                color: "#45B7D1"
+            },
+            { 
+                label: "観光客誘致NG", 
+                title: "「観光客を呼ぶ」発想を禁止", 
+                desc: "地方創生＝観光という安易な思考はNG！関係人口の創出や、一次産業のIT化など、全く別のベクトルの解決策を探そう。",
+                color: "#FDCB6E"
+            },
+            { 
+                label: "大人介入NG", 
+                title: "大人は一切手伝ってくれない", 
+                desc: "実行委員は中学生のみ！君たちが持つネットワーク、SNS、学校というコミュニティなど「今ある武器」だけで戦おう。",
+                color: "#6C5CE7"
+            },
+            { 
+                label: "50年後計画", 
+                title: "成果が出るのは「50年後」", 
+                desc: "特効薬は狙わない。50年後の未来を見据え、森づくりや教育など、超長期的な「持続可能性（サステナビリティ）」を考えよう。",
+                color: "#E84393"
+            },
+            { 
+                label: "電気ネットNG", 
+                title: "電気とインターネット使用禁止", 
+                desc: "安易なアプリ開発やVRは封印！東北の自然、対面でのコミュニケーション、手触りなど、デジタル化できない価値を見つけよう。",
+                color: "#00B894"
+            }
+        ];
+
+        const canvas = document.getElementById('rouletteCanvas');
+        const ctx = canvas.getContext('2d');
+        const spinBtn = document.getElementById('spinBtn');
+        const modal = document.getElementById('resultModal');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const resultTitle = document.getElementById('resultTitle');
+        const resultDesc = document.getElementById('resultDesc');
+
+        const numSlices = constraints.length;
+        const sliceAngle = (2 * Math.PI) / numSlices;
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const radius = centerX - 10; // Padding
+
+        let currentRotation = 0; // In radians
+        let angularVelocity = 0;
+        let isSpinning = false;
+        let animationFrameId;
+        
+        // Tone.js Synthesizer for tick sound
+        let synth = null;
+        let lastTickSlice = -1;
+
+        // Initialize Audio on first user interaction
+        function initAudio() {
+            if (!synth) {
+                synth = new Tone.MembraneSynth({
+                    pitchDecay: 0.01,
+                    octaves: 2,
+                    oscillator: { type: "square" },
+                    envelope: { attack: 0.001, decay: 0.1, sustain: 0, release: 0.1 }
+                }).toDestination();
+                synth.volume.value = -10;
+            }
+        }
+
+        function drawWheel() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            for (let i = 0; i < numSlices; i++) {
+                const startAngle = currentRotation + i * sliceAngle;
+                const endAngle = startAngle + sliceAngle;
+
+                // Draw slice
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+                ctx.closePath();
+                ctx.fillStyle = constraints[i].color;
+                ctx.fill();
+                ctx.lineWidth = 4;
+                ctx.strokeStyle = "#1e293b"; // slate-800 border between slices
+                ctx.stroke();
+
+                // Draw text
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                // Rotate to the center of the slice
+                ctx.rotate(startAngle + sliceAngle / 2);
+                
+                ctx.textAlign = "right";
+                ctx.textBaseline = "middle";
+                ctx.fillStyle = "#ffffff";
+                ctx.font = "bold 24px 'M PLUS Rounded 1c', sans-serif";
+                
+                // Add text shadow for readability
+                ctx.shadowColor = "rgba(0,0,0,0.6)";
+                ctx.shadowBlur = 4;
+                ctx.shadowOffsetX = 2;
+                ctx.shadowOffsetY = 2;
+                
+                ctx.fillText(constraints[i].label, radius - 30, 0);
+                ctx.restore();
+            }
+            
+            // Draw center dot
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 25, 0, 2 * Math.PI);
+            ctx.fillStyle = "#1e293b";
+            ctx.fill();
+            ctx.lineWidth = 4;
+            ctx.strokeStyle = "#ffffff";
+            ctx.stroke();
+        }
+
+        function animate() {
+            if (!isSpinning) return;
+
+            currentRotation += angularVelocity;
+            
+            // Play tick sound when a slice passes the top pointer (270 degrees or 1.5 * Math.PI)
+            // Normalize current rotation relative to pointer
+            let pointerAngle = (1.5 * Math.PI - currentRotation) % (2 * Math.PI);
+            if (pointerAngle < 0) pointerAngle += 2 * Math.PI;
+            
+            let currentTickSlice = Math.floor(pointerAngle / sliceAngle);
+            
+            if (currentTickSlice !== lastTickSlice) {
+                if (synth && Tone.context.state === 'running') {
+                    synth.triggerAttackRelease("C4", "32n");
+                }
+                lastTickSlice = currentTickSlice;
+            }
+
+            drawWheel();
+
+            // Apply friction
+            angularVelocity *= 0.985; // Deceleration rate
+
+            // Stop condition
+            if (angularVelocity < 0.002) {
+                isSpinning = false;
+                angularVelocity = 0;
+                determineWinner();
+            } else {
+                animationFrameId = requestAnimationFrame(animate);
+            }
+        }
+
+        function determineWinner() {
+            // Pointer is at the top (270 degrees / 1.5 PI in canvas terms)
+            // We need to calculate which slice falls into this angle based on currentRotation
+            
+            let pointerAngle = (1.5 * Math.PI - currentRotation) % (2 * Math.PI);
+            if (pointerAngle < 0) {
+                pointerAngle += 2 * Math.PI;
+            }
+            
+            const winningIndex = Math.floor(pointerAngle / sliceAngle);
+            const winner = constraints[winningIndex];
+
+            // Play win sound
+            if (synth) {
+                const now = Tone.now();
+                synth.triggerAttackRelease("C5", "8n", now);
+                synth.triggerAttackRelease("E5", "8n", now + 0.15);
+                synth.triggerAttackRelease("G5", "4n", now + 0.3);
+            }
+
+            // Show Modal
+            resultTitle.textContent = winner.title;
+            resultDesc.textContent = winner.desc;
+            
+            // Set dynamic text color based on slice color
+            resultTitle.style.color = winner.color;
+
+            modal.classList.remove('hidden');
+            modal.querySelector('div').classList.add('modal-enter');
+        }
+
+        // Event Listeners
+        spinBtn.addEventListener('click', async () => {
+            if (isSpinning) return;
+            
+            // Init audio context on user gesture
+            await Tone.start();
+            initAudio();
+            
+            isSpinning = true;
+            
+            // Randomize starting velocity for unpredictability
+            angularVelocity = 0.5 + Math.random() * 0.3; 
+            lastTickSlice = -1;
+            
+            animate();
+        });
+
+        closeModalBtn.addEventListener('click', () => {
+            modal.classList.add('hidden');
+            modal.querySelector('div').classList.remove('modal-enter');
+        });
+
+        // Initial draw
+        window.onload = () => {
+            drawWheel();
+        };
+
+    </script>
+</body>
+</html>
