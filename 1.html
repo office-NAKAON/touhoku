@@ -6,90 +6,308 @@
 <title>【極秘任務】東北地方・次の一手 プロジェクトファイル</title>
 <style>
     @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&display=swap');
-    body { font-family: 'M PLUS Rounded 1c', sans-serif; line-height: 1.8; color: #444; background-color: #f9f9ec; max-width: 850px; margin: 0 auto; padding: 20px; }
-    .header-box { background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%); padding: 30px; border-radius: 15px; text-align: center; color: white; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 30px; }
-    h1 { margin: 0; font-size: 28px; text-shadow: 1px 1px 2px rgba(0,0,0,0.2); }
-    h2 { background-color: #fff; padding: 15px 20px; border-left: 8px solid #ff7f50; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-top: 40px; color: #ff6b6b; }
-    .no-ai { background-color: #ffeaa7; padding: 12px; border-radius: 8px; font-weight: bold; margin-bottom: 20px; text-align: center; color: #d35400; }
-    .ai-hint { background-color: #e8f8f5; padding: 20px; border: 2px dashed #1abc9c; border-radius: 10px; margin-bottom: 20px; position: relative; }
-    .ai-hint::before { content: '🤖 AIサポーターからの提案'; position: absolute; top: -15px; left: 20px; background-color: #1abc9c; color: white; padding: 5px 15px; border-radius: 20px; font-size: 14px; font-weight: bold; }
-    .box { background-color: white; border: 2px solid #ecf0f1; border-radius: 10px; padding: 25px; margin-bottom: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); transition: all 0.3s ease; }
-    .box:hover { border-color: #74ebd5; transform: translateY(-2px); }
-    .prompt-box { background-color: #2c3e50; color: #ecf0f1; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 14px; margin-top: 10px; }
-    label { font-weight: 700; display: block; margin-bottom: 10px; font-size: 16px; color: #2c3e50; }
-    textarea { width: 100%; min-height: 120px; border: 1px solid #bdc3c7; border-radius: 5px; padding: 10px; font-family: inherit; font-size: 15px; resize: vertical; box-sizing: border-box; }
-    textarea:focus { outline: none; border-color: #3498db; box-shadow: 0 0 5px rgba(52, 152, 219, 0.3); }
-    .subtitle { color: #7f8c8d; font-size: 14px; margin-top: -5px; margin-bottom: 15px; display: block; }
+
+    /* ── A4 ページ設定 ── */
+    @page {
+        size: A4 portrait;
+        margin: 12mm 15mm;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+        font-family: 'M PLUS Rounded 1c', sans-serif;
+        line-height: 1.6;
+        color: #333;
+        background-color: #e8e8e0;
+        margin: 0;
+        padding: 20px 0;
+    }
+
+    /* 1ページ = 1枚のA4 */
+    .page {
+        width: 210mm;
+        min-height: 297mm;
+        margin: 0 auto 20px;
+        padding: 12mm 15mm;
+        background: #fff;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+        position: relative;
+    }
+
+    /* ── 共通パーツ ── */
+    .header-box {
+        background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%);
+        padding: 10px 16px;
+        border-radius: 8px;
+        text-align: center;
+        color: white;
+        margin-bottom: 10px;
+    }
+    h1 { margin: 0; font-size: 20px; }
+    .header-box p { margin: 4px 0 0; font-size: 12px; }
+
+    .name-line {
+        text-align: right;
+        font-weight: bold;
+        font-size: 13px;
+        margin-bottom: 10px;
+    }
+
+    h2 {
+        background-color: #fff8f5;
+        padding: 6px 10px;
+        border-left: 6px solid #ff7f50;
+        border-radius: 4px;
+        margin: 12px 0 8px;
+        font-size: 14px;
+        color: #e05555;
+        page-break-after: avoid;
+    }
+
+    .no-ai {
+        background-color: #ffeaa7;
+        padding: 6px 10px;
+        border-radius: 6px;
+        font-weight: bold;
+        margin-bottom: 8px;
+        text-align: center;
+        color: #d35400;
+        font-size: 12px;
+    }
+
+    .box {
+        border: 1.5px solid #bbb;
+        border-radius: 6px;
+        padding: 8px 10px;
+        margin-bottom: 10px;
+        page-break-inside: avoid;
+    }
+
+    label {
+        font-weight: 700;
+        display: block;
+        margin-bottom: 4px;
+        font-size: 13px;
+        color: #2c3e50;
+    }
+
+    .subtitle {
+        color: #777;
+        font-size: 11px;
+        margin-bottom: 6px;
+        display: block;
+    }
+
+    /* 手書き用の罫線エリア */
+    .write-area {
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        background-image: repeating-linear-gradient(
+            transparent,
+            transparent calc(1.6em - 1px),
+            #ccc calc(1.6em - 1px),
+            #ccc 1.6em
+        );
+        background-position: 0 4px;
+    }
+
+    .ai-hint {
+        background-color: #f0faf8;
+        padding: 10px 12px 8px;
+        border: 1.5px dashed #1abc9c;
+        border-radius: 6px;
+        margin-bottom: 10px;
+        font-size: 12px;
+        position: relative;
+        page-break-inside: avoid;
+    }
+    .ai-hint-title {
+        display: inline-block;
+        background-color: #1abc9c;
+        color: white;
+        padding: 2px 10px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: bold;
+        margin-bottom: 6px;
+    }
+
+    .prompt-box {
+        background-color: #2c3e50;
+        color: #ecf0f1;
+        padding: 8px 10px;
+        border-radius: 5px;
+        font-family: monospace;
+        font-size: 10px;
+        line-height: 1.5;
+        margin-top: 6px;
+    }
+
+    .page-footer {
+        position: absolute;
+        bottom: 8mm;
+        left: 15mm;
+        right: 15mm;
+        text-align: center;
+        font-size: 10px;
+        color: #aaa;
+    }
+
+    /* ── 印刷用 ── */
+    @media print {
+        body {
+            background: none;
+            padding: 0;
+        }
+        .page {
+            width: auto;
+            min-height: auto;
+            margin: 0;
+            padding: 0;
+            box-shadow: none;
+            page-break-after: always;
+        }
+        .page:last-child {
+            page-break-after: auto;
+        }
+        .header-box {
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        .no-ai, .ai-hint, h2 {
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        .prompt-box {
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+    }
+
+    /* ── 画面プレビュー用（印刷しない） ── */
+    @media screen {
+        .print-hint {
+            text-align: center;
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 16px;
+        }
+        .print-hint button {
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: bold;
+            padding: 8px 24px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-left: 8px;
+        }
+        .print-hint button:hover { background: #2980b9; }
+    }
+    @media print {
+        .print-hint { display: none; }
+    }
 </style>
 </head>
 <body>
 
+<p class="print-hint">A4用にレイアウト済みです。<button onclick="window.print()">🖨 印刷する</button></p>
+
+<!-- ===== 1枚目：表紙 + Step 1 ===== -->
+<div class="page">
     <div class="header-box">
         <h1>【極秘任務】東北地方・次の一手</h1>
         <p>〜未来をつくるのは、君のアイデアだ〜</p>
     </div>
-    <p style="text-align:right; font-weight:bold;">プロジェクトリーダー（氏名）：_______________________</p>
+    <p class="name-line">プロジェクトリーダー（氏名）：_______________________</p>
 
-    <!-- 第1時 -->
     <h2>Step 1: 探求 🔍 教科書の「すごい！」と、現実の「壁」</h2>
     <div class="no-ai">🚫 ここは君の心と頭を使う時間！AIはまだお休みです。</div>
+
     <div class="box">
         <label>① 教科書を読んで「東北の人たち、こんな工夫しててすごいな！」と心が動いたものはどれ？</label>
         <span class="subtitle">伝統行事？新しいお米？率直な感想を書いてみよう。</span>
-        <textarea placeholder="例：夏祭りを観光の目玉にしているのが面白いと思った！だって..."></textarea>
+        <div class="write-area" style="height: 72mm;"></div>
     </div>
     <div class="box">
         <label>② でも、グラフやデータ（現実）を見ると、その工夫はどんな「厳しい壁」にぶつかっているだろう？</label>
         <span class="subtitle">人口、高齢化、後継者...現実のデータから読み取れるピンチを書き出そう。</span>
-        <textarea placeholder="例：お祭りをやりたくても、若者がグラフの通り減っているから、担い手がいなくなってしまう..."></textarea>
+        <div class="write-area" style="height: 72mm;"></div>
     </div>
 
-    <!-- 第2時 -->
+    <div class="page-footer">1 / 4</div>
+</div>
+
+<!-- ===== 2枚目：Step 2 ===== -->
+<div class="page">
     <h2>Step 2: 想像 💡 もしも魔法が使えたら？（アイデア大喜利）</h2>
+
     <div class="box">
         <label>③ 引いた「制約カード」は何？ それを使って、壁を突破するアイデアを3つ考えよう！</label>
         <span class="subtitle">最初は「実現できそうか」は気にしない！質より量で勝負。</span>
-        <textarea placeholder="制約カード：【     】&#13;&#10;アイデアA：&#13;&#10;アイデアB：&#13;&#10;アイデアC："></textarea>
+        <div class="write-area" style="height: 90mm;"></div>
     </div>
+
     <div class="ai-hint">
-        一番「これだ！」と思うアイデアが決まったら、AIに相談して企画書の骨組みを作ろう。<br>
+        <span class="ai-hint-title">🤖 AIサポーターからの提案</span><br>
+        一番「これだ！」と思うアイデアが決まったら、AIに相談して企画書の骨組みを作ろう。
         <div class="prompt-box">
             私は中学生です。「東北地方の次の一手」として、【ここに君の選んだアイデアを書く】という提案を考えています。これを市長にプレゼンするための「目次（章立て）」と、私のアイデアに足りない視点への「質問」を3つ教えてください。答えは教えないでね。
         </div>
     </div>
 
-    <!-- 第3時 -->
+    <div class="page-footer">2 / 4</div>
+</div>
+
+<!-- ===== 3枚目：Step 3 ===== -->
+<div class="page">
     <h2>Step 3: 実行 🚀 いざ、本気の提案書づくり</h2>
+
     <div class="box">
         <label>④ 政策提案書をまとめよう（別紙のフォーマットに清書します）</label>
         <span class="subtitle">構成メモ：①どんな課題があるか → ②私からの提案 → ③なぜそれが良いか（データによる根拠） → ④考えられるリスク</span>
-        <textarea placeholder="ここに下書きや構成のメモを自由に書いてね。"></textarea>
+        <div class="write-area" style="height: 55mm;"></div>
     </div>
+
     <div class="ai-hint">
-        <strong>🔥 最終テスト：AIの厳しいツッコミに耐えられるか？</strong><br>
-        提案書が書けたら、AIに「わざと意地悪な質問」をしてもらおう。<br>
+        <span class="ai-hint-title">🔥 最終テスト：AIの厳しいツッコミに耐えられるか？</span><br>
+        提案書が書けたら、AIに「わざと意地悪な質問」をしてもらおう。
         <div class="prompt-box">
             以下の文章は私の政策提案書です。<br>
             【ここに提案書の文章を貼る】<br>
             あなたは「地元の頑固な70代の農家」と「超厳しい投資家」になって、私の提案の『弱点』や『見落としているリスク』を2つずつ、厳しく指摘してください。解決策は教えずに、ツッコミだけを入れてください。
         </div>
     </div>
+
     <div class="box">
         <label>⑤ AIからの厳しいツッコミに対し、あなたはどう反論（または提案をパワーアップ）する？</label>
-        <textarea placeholder="例：農家さんの指摘はごもっともなので、提案の中に『〇〇のサポート体制』を追加して修正します！"></textarea>
+        <div class="write-area" style="height: 55mm;"></div>
     </div>
 
-    <!-- 第4時 -->
+    <div class="page-footer">3 / 4</div>
+</div>
+
+<!-- ===== 4枚目：Step 4 ===== -->
+<div class="page">
     <h2>Step 4: 省察 🧭 未来の自分への作戦会議</h2>
-    <div class="no-ai">🚫 スマホは置いて、みんなの言葉に耳を傾けよう。</div>
+    <div class="no-ai">🚫 タブレットは置いて、みんなの言葉に耳を傾けよう。</div>
+
     <div class="box">
         <label>⑥ 発表を聞いて、「その手があったか！」と嫉妬した他の人の視点は何？</label>
-        <textarea placeholder="例：A班の『〇〇と〇〇を組み合わせる』という発想は自分たちには無かった..."></textarea>
+        <div class="write-area" style="height: 90mm;"></div>
     </div>
     <div class="box">
         <label>⑦ 次に社会を変える提案を作るとしたら、自分のどこをレベルアップさせたい？</label>
-        <textarea placeholder="例：もっと「データ」をたくさん集めて、反論されないくらいの根拠を作りたい。"></textarea>
+        <div class="write-area" style="height: 90mm;"></div>
     </div>
+
+    <p class="name-line" style="margin-top: 16px; margin-bottom: 20mm;">プロジェクトリーダー（氏名）：_______________________</p>
+
+    <div class="page-footer">4 / 4</div>
+</div>
 
 </body>
 </html>
